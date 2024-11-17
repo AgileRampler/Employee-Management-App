@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { deleteEmpDetailsAPI, editEmpDetailsAPI, getEmpDetailsAPI, saveEmpDetailsAPI } from '../services/allAPI'
 import { Modal,Button,Form,FloatingLabel } from 'react-bootstrap'
-import './Home.css'
+import './home.css'
 
 
 const Home = () => {
