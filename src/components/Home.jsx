@@ -8,7 +8,7 @@ const Home = () => {
   const [empDetails,setEmpDetails] = useState('')
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('active');gi
+  const [status, setStatus] = useState('active');
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
