@@ -1,60 +1,59 @@
-import React, { useEffect, useState } from 'react'
-import { deleteEmpDetailsAPI, editEmpDetailsAPI, getEmpDetailsAPI, saveEmpDetailsAPI } from '../services/allAPI'
-import { Modal,Button,Form,FloatingLabel } from 'react-bootstrap'
-import './home.css'
-
+import React, { useEffect, useState } from 'react';
+import { deleteEmpDetailsAPI, editEmpDetailsAPI, getEmpDetailsAPI, saveEmpDetailsAPI } from '../services/allAPI';
+import { Modal, Button, Form, FloatingLabel } from 'react-bootstrap';
+import './home.css';
 
 const Home = () => {
-  const [empDetails,setEmpDetails] = useState('')
+  const [empDetails, setEmpDetails] = useState([]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('active');
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const [currentEmployeeId,setCurrentEmployeeId] = useState(null)
-  
+  const [currentEmployeeId, setCurrentEmployeeId] = useState(null);
 
-  useEffect(()=>{
-    getEmployee()
-  },[empDetails])
+  useEffect(() => {
+    getEmployee();
+  }, []);
 
-  // add employee
-  const addEmployee = async () => {
-    const employeeDetails= {"name":name,"email":email,"status":status};
-    if(name && email && status) {
+  // Add employee
+  const addEmployee = async (e) => {
+    e.preventDefault();
+    const employeeDetails = { name, email, status };
+    if (name && email && status) {
       try {
-        await saveEmpDetailsAPI(employeeDetails)  
-      } 
-      catch (err) {
+        await saveEmpDetailsAPI(employeeDetails);
+        getEmployee();
+      } catch (err) {
         console.log(err);
       }
+    } else {
+      alert('Please enter all details');
     }
-    else {
-      alert("Please enter details")
-    }
-    }
-    
+  };
 
-  // get employee
-  const getEmployee = async () =>{
-    const result = await getEmpDetailsAPI()
-    setEmpDetails(result.data)
-  }
-  
-  // delete employee
-  const deleteEmployee = async (id) =>{
+  // Get employees
+  const getEmployee = async () => {
     try {
-      await deleteEmpDetailsAPI(id)
-    } 
-    catch (err) {
+      const result = await getEmpDetailsAPI();
+      setEmpDetails(result.data || []);
+    } catch (err) {
       console.log(err);
-      
     }
-  }
+  };
 
+  // Delete employee
+  const deleteEmployee = async (id) => {
+    try {
+      await deleteEmpDetailsAPI(id);
+      getEmployee();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-  // edit employee modal
+  // Edit employee modal
   const editEmployee = (employee) => {
     handleShow();
     setCurrentEmployeeId(employee.id);
@@ -62,7 +61,6 @@ const Home = () => {
     setEmail(employee.email);
     setStatus(employee.status);
   };
-
 
   // Save edited employee details
   const saveEditedEmployee = async () => {
@@ -76,92 +74,96 @@ const Home = () => {
     }
   };
 
-
   return (
     <>
-      <h1 className='text-center m-5 p-5'>Employee Management App</h1>
-      <div className='d-flex justify-content-center'>
-        <table>
-            <thead>
-                <tr className='fs-3'>
-                    <th className='px-4'>ID</th>
-                    <th className='px-5'>Username</th>
-                    <th className='px-5'>Email</th>
-                    <th className='px-4'>Status</th>
-                    <th className='px-3'>..</th>
-                    <th className='px-3'>..</th>
-                </tr>
-            </thead>
-            <tbody>
-              {
-                empDetails?.length>0? 
-                empDetails.map((data,index)=>(
-                  <tr key={index}>
-                    <td className='px-4 text-center'>{index+1}</td>
-                    <td className='px-4 text-center'>{data.name}</td>
-                    <td className='px-4 text-center'>{data.email}</td>
-                    <td className='px-4 text-center'>{data.status}</td>
-                    <td><button onClick={()=> deleteEmployee(data.id)}><i className='fa-solid fa-trash'></i></button></td>
-                    <td><button onClick={()=> editEmployee(data)}><i className='fa-solid fa-edit'></i></button></td>
-                  </tr>
+      <h1 className="text-center m-5">Employee Management App</h1>
 
-                )) :
-                <div className="fw-bolder text-danger text-center">No data</div>
-              }
-            </tbody>
-        </table>
+      {/* Employee Cards */}
+      <div className="employee-container">
+        {empDetails.length > 0 ? (
+          empDetails.map((employee, index) => (
+            <div className="employee-card" key={index}>
+              <h3>{employee.name}</h3>
+              <p>Email: {employee.email}</p>
+              <p>Status: <strong>{employee.status}</strong></p>
+              <div className="card-actions">
+                <button className="edit-btn" onClick={() => editEmployee(employee)}>Edit</button>
+                <button className="delete-btn" onClick={() => deleteEmployee(employee.id)}>Delete</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="no-data">No employees found</p>
+        )}
       </div>
-      <>
-        <form className='text-center mt-5'>
-          <h2 className='mb-3'>Add Employee</h2>
-          <div className='d-flex justify-content-center gap-3'>
-              <input type="text" placeholder="Name" onChange={(e) => setName(e.target.value)} required />
-              <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
-              <select onChange={(e) => setStatus(e.target.value)}>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              <button onClick={addEmployee} type="submit">Add Employee</button>
-          </div>
-        </form>
-        <Modal
-        show={show}
-        onHide={handleClose}
-        backdrop="static"
-        keyboard={false}
-      >
+
+      {/* Add Employee Form */}
+      <form className="add-employee-form" onSubmit={addEmployee}>
+        <h2>Add Employee</h2>
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <button type="submit">Add Employee</button>
+      </form>
+
+      {/* Edit Modal */}
+      <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false}>
         <Modal.Header closeButton>
           <Modal.Title>Edit Employee Details</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="border rounded p-3">
-          <FloatingLabel controlId="floatingPassword" label="Username">
-           <Form.Control onChange={(e) => setName(e.target.value)} className='mt-2' type="text" placeholder="Username" />
-          </FloatingLabel>   
-          <FloatingLabel controlId="floatingPassword" label="Email">
-           <Form.Control onChange={(e) => setEmail(e.target.value)} className='mt-2' type="text" placeholder="Email" />
-          </FloatingLabel> 
-          <FloatingLabel controlId="floatingPassword" label="">
-             <select className='ms-1 mt-3' onChange={(e) => setStatus(e.target.value)}>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-          </FloatingLabel>    
-          </div>
+          <FloatingLabel controlId="floatingName" label="Name" className="mb-3">
+            <Form.Control
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </FloatingLabel>
+          <FloatingLabel controlId="floatingEmail" label="Email" className="mb-3">
+            <Form.Control
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </FloatingLabel>
+          <FloatingLabel controlId="floatingStatus" label="Status">
+            <Form.Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </Form.Select>
+          </FloatingLabel>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={saveEditedEmployee} className='btn btn-success'>Submit</Button>
+          <Button variant="success" onClick={saveEditedEmployee}>
+            Save
+          </Button>
         </Modal.Footer>
-        </Modal>
-      </>
-      
+      </Modal>
     </>
-  )
-}
+  );
+};
 
-export default Home
-
-                
+export default Home;
